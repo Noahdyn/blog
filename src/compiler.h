@@ -14,8 +14,5 @@ struct Post {
   int asset_count;
 };
 
-void build_body(Element *elements, int count, std::string &out,
-                std::string *assets, int &asset_count, const std::string &title,
-                const std::string &date);
 Post compile(char *source);
 #endif
