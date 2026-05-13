@@ -59,7 +59,7 @@ static void copy_file(const char *src, const char *dst) {
   free(contents);
 }
 
-static const char *static_assets[] = {"style.css"};
+static const char *static_assets[] = {"style.css", "prism.css", "prism.js"};
 
 int main() {
   fs::remove_all("docs");
