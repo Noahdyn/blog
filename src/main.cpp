@@ -108,6 +108,8 @@ int main() {
   write_file("docs/blog.html", generate_blog_index(posts));
   printf("generated docs/blog.html (%zu posts)\n", posts.size());
 
+  write_file("docs/CNAME", "dustinnoah.dev");
+
   for (const char *asset : static_assets) {
     char dst[256];
     snprintf(dst, sizeof(dst), "docs/%s", asset);
