@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-#include <sys/stat.h>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -63,9 +62,9 @@ static void copy_file(const char *src, const char *dst) {
 static const char *static_assets[] = {"style.css"};
 
 int main() {
-  mkdir("docs", 0755);
-  mkdir("docs/blog", 0755);
-  mkdir("docs/assets", 0755);
+  fs::remove_all("docs");
+  fs::create_directories("docs/blog");
+  fs::create_directories("docs/assets");
 
   std::vector<Post> posts;
 
