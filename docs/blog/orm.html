@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#e9dac5" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#e9dac5" media="(prefers-color-scheme: light)">
+  <meta name="date" content="2026-05-17">
+  <title>Fixing the most common ORM pitfall - The n+1 problem</title>
+  <link rel="stylesheet" href="../style.css">
+  <link href="../prism.css" rel="stylesheet">
+</head>
+<body>
+  <script src="../prism.js"></script><main>
+  <header class="post-header">
+    <nav class="post-nav">
+      <a href="../index.html">About</a>
+      <a href="../blog.html" aria-current="page">Blog</a>
+    </nav>
+  </header>
+  <article class="post-body">
+    <h1 class="post-title">Fixing the most common ORM pitfall - The n+1 problem</h1>
+    <time class="post-date" datetime="2026-05-17">2026-05-17</time>
+    <h1>Introduction</h1>
+    <p>ORM Tools, such as the Entity Framework are a very popular abstraction in the enterprise world. Instead of having to think about your database layout and handling the mapping between database tables and application objects you can just declare the models you want to use and have your ORM handle the rest for you.</p>
+    <p>However this disconnect between the developer and the underlying database technology frequently results in inefficient application code, the one example I've seen most frequently in real projects is the so called n+1 problem. In fact I've seen it so many times in different companies that I've decided to write this blog post, offering a simple fix.</p>
+    <h1>The Problem</h1>
+    <p>But first we have to understand the problem at hand. So to visualize we're going to look at an example in the Entity Framework:</p>
+    <pre><code class="language-cs">public class Customer
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public List&lt;Order&gt; Orders { get; set; } = new();
+}
+
+public class Order
+{
+    public int Id { get; set; }
+    public string Product { get; set; } = "";
+    public int CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
+}
+
+public class AppDbContext : DbContext
+{
+    public DbSet&lt;Customer&gt; Customers =&gt; Set&lt;Customer&gt;();
+    public DbSet&lt;Order&gt; Orders =&gt; Set&lt;Order&gt;();
+
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    {
+        options
+            .UseSqlite("Data Source=demo.db")
+            .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information)
+            .EnableSensitiveDataLogging();
+    }
+}
+</code></pre>
+    <p>Here we are indirectly creating two db tables, a Customer table and an Order table, sharing a one-to-many relation with each other.</p>
+    <p>Now in your application you may end up iterating over all orders and do something like this:</p>
+    <pre><code class="language-cs">var orders = await context.Orders.ToListAsync();
+
+foreach (var order in orders)
+{
+    var customerName = context.Customers
+        .Where(c =&gt; c.Id == order.CustomerId)
+        .Select(c =&gt; c.Name)
+        .First();
+    // send out invoice..
+}
+</code></pre>
+    <p>Now this short snipped might seem innocent, but actually carries a massive performance liability to your application. The way Entity Framework (or any ORM really) interprets this is to send a query to your database on every loop iteration, fetching the given customer name from the Customer table, resulting in one query for each order plus the original orders query, giving this problem its name, the n+1 problem.</p>
+    <h1>The Solution</h1>
+    <p>So how do we actually fix this. Those of you who remember their days on university, or had the joy of working directly with a database rather than through an ORM may remember these things called JOINS.</p>
+    <p>A join merges two database tables and allows you to view desired columns from both tables in one result (using only 1 query). </p>
+    <p>Luckily any reasonable ORM lets you do this in your application code aswell:</p>
+    <pre><code class="language-cs">
+var ordersWithCustomers = await context.Orders
+    .Include(o =&gt; o.Customer)
+    .ToListAsync();
+
+foreach (var order in ordersWithCustomers)
+{
+    var customerName = order.Customer.Name;
+    // send out invoice..
+}
+
+</code></pre>
+    <p>This way we fetch the required information directly with our initial query and can use it in our application without requiring additional database queries.</p>
+  </article>
+  <footer class="post-footer"><p>Page generated in 62 μs</p></footer>
+</main>
+</body>
+</html>
