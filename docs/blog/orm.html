@@ -69,6 +69,18 @@ foreach (var order in orders)
 }
 </code></pre>
     <p>Now this short snipped might seem innocent, but actually carries a massive performance liability to your application. The way Entity Framework (or any ORM really) interprets this is to send a query to your database on every loop iteration, fetching the given customer name from the Customer table, resulting in one query for each order plus the original orders query, giving this problem its name, the n+1 problem.</p>
+    <p>If we look at the SQL produced by this loop, we can see the following queries:</p>
+    <pre><code class="language-sql">-- initial orders query
+SELECT "o"."Id", "o"."CustomerId", "o"."Product"
+      FROM "Orders" AS "o"
+
+-- generated for each iteration of the loop
+ SELECT "c"."Name"
+      FROM "Customers" AS "c"
+      WHERE "c"."Id" = @__order_CustomerId_0
+      LIMIT 1
+</code></pre>
+    <p>This is a massive liability in regards to our applications performance, hitting the database and thus on-disk memory n+1 times is insanely inefficient.</p>
     <h1>The Solution</h1>
     <p>So how do we actually fix this. Those of you who remember their days on university, or had the joy of working directly with a database rather than through an ORM may remember these things called JOINS.</p>
     <p>A join merges two database tables and allows you to view desired columns from both tables in one result (using only 1 query). </p>
@@ -86,8 +98,14 @@ foreach (var order in ordersWithCustomers)
 
 </code></pre>
     <p>This way we fetch the required information directly with our initial query and can use it in our application without requiring additional database queries.</p>
+    <p>Lets have a look at the generated SQL:</p>
+    <pre><code class="language-sql">SELECT "o"."Id", "o"."CustomerId", "o"."Product", "c"."Id", "c"."Name"
+    FROM "Orders" AS "o"
+    INNER JOIN "Customers" AS "c" ON "o"."CustomerId" = "c"."Id"
+</code></pre>
+    <p>Here we can see Entity Framework performing a single query, joining both tables together and thus greatly increasing our applications performance.</p>
   </article>
-  <footer class="post-footer"><p>Page generated in 62 μs</p></footer>
+  <footer class="post-footer"><p>Page generated in 70 μs</p></footer>
 </main>
 </body>
 </html>
