@@ -23,7 +23,7 @@ main {
   justify-content: space-between;
   align-items: baseline;
   gap: 2rem;
-  padding: 0.75rem 0;
+  padding: 0 0 1.5rem 0;
   text-decoration: none;
   color: #090300;
 }
@@ -78,7 +78,7 @@ main {
 .post-body {
   max-width: 760px;
   margin: 0 auto;
-  padding: 3rem 2rem 2.5rem;
+  padding: 1.5rem 2rem 2.5rem;
 }
 
 .post-footer {
