@@ -167,7 +167,14 @@ And that already is the quintessence of the entire ssg. It has to do some more s
 
 # Outro
 
-If you have a personal website and truly wanna make it your own (and have some interest in compilers), I highly recommend you to write your own ssg. This project can be fairly small scoped, and let you experience compiler internals in a beginner-friendly way. The result is quite satisfying to achieve if I may say so myself. 
+If you have a personal website and truly wanna make it your own (and have some interest in compilers), I highly recommend you to write your own ssg.
+Also I want to encourage you to have fun with it, its your own software after all, you can add whatever features your heart desires to it. One addition I've added, which brings me joy is tracking the compile time of each blog page and attaching this little performance info to the footer of a blog post.
+
+![Screenshot of a blog pages footer](footer.png)
+(You can also just scroll down to see this)
+
+
+This project can be fairly small scoped, and let you experience compiler internals in a beginner-friendly way. The result is quite satisfying to achieve if I may say so myself. 
 Happy Coding everyone!
 
 
